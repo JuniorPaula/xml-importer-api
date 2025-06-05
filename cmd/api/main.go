@@ -16,12 +16,15 @@ func init() {
 }
 
 func main() {
-	_, err := config.ConnectDatabase()
+	db, err := config.ConnectDatabase()
 	if err != nil {
 		panic(err)
 	}
 
 	app := fiber.New()
+
+	// Initialize routes
+	bootstrapRoutes(app, db)
 
 	port := os.Getenv("PORT")
 	if port == "" {

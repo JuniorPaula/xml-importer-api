@@ -1,6 +1,6 @@
 # Variáveis
 APP_NAME=bin/app
-MAIN=cmd/api/main.go
+MAIN=cmd/api/*.go
 ENV=.env
 
 # Targets
