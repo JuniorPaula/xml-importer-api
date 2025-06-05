@@ -4,6 +4,7 @@ import (
 	"importerapi/config"
 	"log"
 	"os"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -21,7 +22,10 @@ func main() {
 		panic(err)
 	}
 
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		BodyLimit:   20 * 1024 * 1024, // 20 MB
+		ReadTimeout: 60 * time.Second,
+	})
 
 	// Initialize routes
 	bootstrapRoutes(app, db)

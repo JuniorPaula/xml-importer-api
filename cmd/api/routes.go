@@ -1,6 +1,8 @@
 package main
 
 import (
+	"importerapi/internal/handlers"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
@@ -21,4 +23,7 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB) {
 			"message": "API is running",
 		})
 	})
+
+	importHandler := handlers.NewImportHandler()
+	api.Post("/import/xml", importHandler.ImportXMLDataHandler)
 }
