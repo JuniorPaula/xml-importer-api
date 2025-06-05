@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: go_pg
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_HOST: localhost
+      POSTGRES_DB: importer
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin
+      POSTGRES_PORT: 5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+volumes:
+  pgdata:
+
+networks:
+  app-network:
+    driver: bridge
