@@ -50,3 +50,25 @@ func (h *InvoiceItemHandler) GetInvoiceItemsHandler(c *fiber.Ctx) error {
 		"totalPages": int(math.Ceil(float64(total) / float64(pageSize))),
 	})
 }
+
+func (h *InvoiceItemHandler) GetInvoiceItemByID(c *fiber.Ctx) error {
+	id, err := strconv.Atoi(c.Params("id"))
+	if err != nil || id <= 0 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Invalid invoice item ID",
+		})
+	}
+
+	item, err := h.InvoiceItemRepo.FindByID(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to retrieve invoice items",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   item,
+	})
+}

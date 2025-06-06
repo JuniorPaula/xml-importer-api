@@ -42,6 +42,7 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 
 	/* Invoice Item Routes */
 	api.Get("/invoice-items", invoiceItemHandler.GetInvoiceItemsHandler)
+	api.Get("/invoice-items/:id", invoiceItemHandler.GetInvoiceItemByID)
 
 	/* Product Routes */
 	api.Get("/products", productHandler.GetProducts)

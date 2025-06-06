@@ -44,7 +44,7 @@ func (r *InvoiceItemRepo) FindAll(filter InvoiceItemFilter) ([]models.InvoiceIte
 	var items []models.InvoiceItem
 	var total int64
 
-	query := r.db.Model(&models.InvoiceItem{}).Preload("Product").Preload("Invoice")
+	query := r.db.Preload("Invoice.Customer").Model(&models.InvoiceItem{}).Preload("Invoice.Partner").Preload("Product").Preload("Invoice")
 
 	if filter.InvoiceID != "" {
 		query = query.Where("invoice_id = ?", filter.InvoiceID)
@@ -75,4 +75,14 @@ func (r *InvoiceItemRepo) FindAll(filter InvoiceItemFilter) ([]models.InvoiceIte
 	err := query.Offset(offset).Limit(filter.PageSize).Find(&items).Error
 
 	return items, total, err
+}
+
+// FindByID retrieves an invoice item by its ID.
+func (r *InvoiceItemRepo) FindByID(id int) (*models.InvoiceItem, error) {
+	var item models.InvoiceItem
+	err := r.db.Preload("Invoice.Customer").Where("id = ?", id).Preload("Invoice.Partner").Preload("Product").First(&item).Error
+	if err != nil {
+		return nil, err
+	}
+	return &item, nil
 }
