@@ -9,6 +9,7 @@ import (
 type CustomerRepository interface {
 	WithTx(tx *gorm.DB) CustomerRepository
 	FirstOrCreateCustomer(customer *models.Customer) error
+	FindAll(filter CustomerFilter) ([]models.Customer, int64, error)
 }
 
 type PartnerRepository interface {
