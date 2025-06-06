@@ -2,17 +2,21 @@ package handlers
 
 import (
 	"fmt"
-	"importerapi/internal/util"
+	"importerapi/internal/worker"
 	"os"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-type ImportHandler struct{}
+type ImportHandler struct {
+	JobQueue chan worker.ImportJob
+}
 
-func NewImportHandler() *ImportHandler {
-	return &ImportHandler{}
+func NewImportHandler(queue chan worker.ImportJob) *ImportHandler {
+	return &ImportHandler{
+		JobQueue: queue,
+	}
 }
 
 // ImportXMLDataHandler handles the import of data from a XML file
@@ -40,35 +44,9 @@ func (h *ImportHandler) ImportXMLDataHandler(c *fiber.Ctx) error {
 			"message": "Failed to save file: " + err.Error(),
 		})
 	}
-	go func(path string) {
-		startTime := time.Now()
 
-		f, err := os.Open(path)
-		if err != nil {
-			fmt.Printf("Error opening file: %s\n", err.Error())
-			return
-		}
-		defer f.Close()
-
-		fmt.Printf("Start processing %s at %s\n", path, startTime.Format(time.RFC3339))
-		records, err := util.ReadExcelFromReader(f)
-		if err != nil {
-			fmt.Println("Error reading excel file:", err)
-			return
-		}
-
-		elapsedTime := time.Since(startTime)
-		fmt.Printf("Records %+v\n", records)
-		fmt.Printf("File %s processed successlify in: %s\n", path, elapsedTime)
-
-		// remove the file after processing
-		if err := os.Remove(path); err != nil {
-			fmt.Printf("Error removing file %s: %s\n", path, err.Error())
-		} else {
-			fmt.Printf("File %s removed successfully\n", path)
-		}
-
-	}(filename)
+	// Add the job to the queue for background processing
+	h.JobQueue <- worker.ImportJob{FilePath: filename}
 
 	return c.JSON(fiber.Map{
 		"status":  "success",

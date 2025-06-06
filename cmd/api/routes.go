@@ -2,6 +2,7 @@ package main
 
 import (
 	"importerapi/internal/handlers"
+	"importerapi/internal/worker"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
@@ -9,7 +10,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func bootstrapRoutes(app *fiber.App, db *gorm.DB) {
+func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob) {
 	app.Use(recover.New())
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
@@ -24,6 +25,6 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB) {
 		})
 	})
 
-	importHandler := handlers.NewImportHandler()
+	importHandler := handlers.NewImportHandler(jobQueue)
 	api.Post("/import/xml", importHandler.ImportXMLDataHandler)
 }
