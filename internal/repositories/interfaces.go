@@ -33,4 +33,5 @@ type InvoiceRepository interface {
 type InvoiceItemRepository interface {
 	WithTx(tx *gorm.DB) InvoiceItemRepository
 	FirstOrCreateInvoiceItem(item *models.InvoiceItem) error
+	FindAll(filter InvoiceItemFilter) ([]models.InvoiceItem, int64, error)
 }
