@@ -47,3 +47,29 @@ func (h *ProductHandler) GetProducts(c *fiber.Ctx) error {
 		"totalPages": int(math.Ceil(float64(total) / float64(pageSize))),
 	})
 }
+
+func (h *ProductHandler) GetProductByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if id == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Product ID is required",
+		})
+	}
+
+	product, err := h.ProductRepo.FindByID(id)
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+				"message": "Product not found",
+			})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to retrieve product",
+			"error":   err.Error(),
+		})
+	}
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   product,
+	})
+}

@@ -57,3 +57,13 @@ func (r *ProductRepo) FindAll(filter ProductFilter) ([]models.Product, int64, er
 
 	return products, total, err
 }
+
+// FindByID retrieves a product by its ID.
+func (r *ProductRepo) FindByID(id string) (*models.Product, error) {
+	var product models.Product
+	err := r.db.Where("id = ?", id).First(&product).Error
+	if err != nil {
+		return nil, err
+	}
+	return &product, nil
+}

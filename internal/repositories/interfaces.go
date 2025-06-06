@@ -21,6 +21,7 @@ type ProductRepository interface {
 	WithTx(tx *gorm.DB) ProductRepository
 	FirstOrCreateProduct(product *models.Product) error
 	FindAll(filter ProductFilter) ([]models.Product, int64, error)
+	FindByID(id string) (*models.Product, error)
 }
 
 type InvoiceRepository interface {
