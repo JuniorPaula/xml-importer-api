@@ -86,3 +86,68 @@ func (r *InvoiceItemRepo) FindByID(id int) (*models.InvoiceItem, error) {
 	}
 	return &item, nil
 }
+
+// GetSummary retrieves a summary of invoice items
+func (r *InvoiceItemRepo) GetSummary() (*models.Summary, error) {
+	var totalInvoices int64
+	var totalItems int64
+	var totalBilling float64
+	var creditDistribution []struct {
+		CreditType string
+		Count      int64
+	}
+	var topProducts []models.ProductTotal
+	var categoryTotals []models.CategoryTotal
+
+	if err := r.db.Model(&models.Invoice{}).Count(&totalInvoices).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Model(&models.InvoiceItem{}).Count(&totalItems).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Model(&models.InvoiceItem{}).Select("SUM(total_price)").Scan(&totalBilling).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Model(&models.InvoiceItem{}).
+		Select("credit_type, COUNT(*) as count").
+		Group("credit_type").
+		Scan(&creditDistribution).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Model(&models.InvoiceItem{}).
+		Select("product_id, products.name AS product_name, SUM(total_price) as total").
+		Joins("JOIN products ON products.id = invoice_items.product_id").
+		Group("product_id, products.name").
+		Order("total DESC").
+		Limit(5).
+		Scan(&topProducts).Error; err != nil {
+		return nil, err
+	}
+
+	if err := r.db.Model(&models.InvoiceItem{}).
+		Select("meter_category, SUM(total_price) as total").
+		Group("meter_category").
+		Order("total DESC").
+		Scan(&categoryTotals).Error; err != nil {
+		return nil, err
+	}
+
+	// Convert credit distribution to a map for easier access
+	creditMap := make(map[string]int64)
+	for _, row := range creditDistribution {
+		creditMap[row.CreditType] = row.Count
+	}
+
+	return &models.Summary{
+		TotalInvoices:          totalInvoices,
+		TotalInvoiceItems:      totalItems,
+		TotalBilling:           totalBilling,
+		CreditTypeDistribution: creditMap,
+		TopProducts:            topProducts,
+		MeterCategoryTotals:    categoryTotals,
+	}, nil
+}

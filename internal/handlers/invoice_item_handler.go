@@ -72,3 +72,18 @@ func (h *InvoiceItemHandler) GetInvoiceItemByID(c *fiber.Ctx) error {
 		"data":   item,
 	})
 }
+
+func (h *InvoiceItemHandler) GetInvoiceItemSummaryHandler(c *fiber.Ctx) error {
+	summary, err := h.InvoiceItemRepo.GetSummary()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": "Failed to retrieve invoice items summary",
+			"error":   err.Error(),
+		})
+	}
+
+	return c.JSON(fiber.Map{
+		"status": "success",
+		"data":   summary,
+	})
+}

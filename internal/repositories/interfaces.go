@@ -35,4 +35,5 @@ type InvoiceItemRepository interface {
 	FirstOrCreateInvoiceItem(item *models.InvoiceItem) error
 	FindAll(filter InvoiceItemFilter) ([]models.InvoiceItem, int64, error)
 	FindByID(id int) (*models.InvoiceItem, error)
+	GetSummary() (*models.Summary, error)
 }
