@@ -40,8 +40,9 @@ func (h *ImportHandler) ImportXMLDataHandler(c *fiber.Ctx) error {
 			"message": "Failed to save file: " + err.Error(),
 		})
 	}
-
 	go func(path string) {
+		startTime := time.Now()
+
 		f, err := os.Open(path)
 		if err != nil {
 			fmt.Printf("Error opening file: %s\n", err.Error())
@@ -49,15 +50,16 @@ func (h *ImportHandler) ImportXMLDataHandler(c *fiber.Ctx) error {
 		}
 		defer f.Close()
 
-		fmt.Println("Initializing excel reader")
+		fmt.Printf("Start processing %s at %s\n", path, startTime.Format(time.RFC3339))
 		records, err := util.ReadExcelFromReader(f)
 		if err != nil {
 			fmt.Println("Error reading excel file:", err)
 			return
 		}
 
-		fmt.Printf("File %s processed successfully\n", path)
+		elapsedTime := time.Since(startTime)
 		fmt.Printf("Records %+v\n", records)
+		fmt.Printf("File %s processed successlify in: %s\n", path, elapsedTime)
 
 		// remove the file after processing
 		if err := os.Remove(path); err != nil {
