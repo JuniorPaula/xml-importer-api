@@ -2,6 +2,7 @@ package worker
 
 import (
 	"fmt"
+	"importerapi/internal/services"
 	"importerapi/internal/util"
 	"os"
 	"time"
@@ -11,7 +12,11 @@ type ImportJob struct {
 	FilePath string
 }
 
-func StartImportWorker(jobQueue <-chan ImportJob, workerID int) {
+type Worker struct {
+	Service *services.ImportService
+}
+
+func (w *Worker) StartImportWorker(jobQueue <-chan ImportJob, workerID int) {
 	for job := range jobQueue {
 		fmt.Printf("[Worker %d] Processing import job for file: %s\n", workerID, job.FilePath)
 		startTime := time.Now()
@@ -26,6 +31,12 @@ func StartImportWorker(jobQueue <-chan ImportJob, workerID int) {
 		records, err := util.ReadExcelFromReader(f)
 		if err != nil {
 			fmt.Printf("[Worker %d] Error reading excel file: %s\n", workerID, err.Error())
+			continue
+		}
+
+		err = w.Service.ImportFromXML(records)
+		if err != nil {
+			fmt.Printf("[Worker %d] Failed to import: %s\n", workerID, err)
 			continue
 		}
 

@@ -2,10 +2,10 @@ package main
 
 import (
 	"importerapi/config"
+	"importerapi/internal/services"
 	"importerapi/internal/worker"
 	"log"
 	"os"
-	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/joho/godotenv"
@@ -24,15 +24,23 @@ func main() {
 	}
 
 	app := fiber.New(fiber.Config{
-		BodyLimit:   20 * 1024 * 1024, // 20 MB
-		ReadTimeout: 60 * time.Second,
+		BodyLimit: 20 * 1024 * 1024, // 20 MB
 	})
 
 	// Job queue for import jobs
 	jobQueue := make(chan worker.ImportJob, 10)
+
+	// setup import service
+	importService := services.NewImportService(db)
+
+	// Initialize worker service
+	workerService := worker.Worker{
+		Service: importService,
+	}
+
 	// Start worker pool with 3 workers
 	for i := range 3 {
-		go worker.StartImportWorker(jobQueue, i)
+		go workerService.StartImportWorker(jobQueue, i)
 	}
 
 	// Initialize routes
