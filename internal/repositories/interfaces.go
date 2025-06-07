@@ -8,6 +8,7 @@ import (
 
 type UserRepository interface {
 	FindByEmail(email string) (*models.User, error)
+	FindByID(id int) (*models.User, error)
 	Create(user *models.User) error
 }
 

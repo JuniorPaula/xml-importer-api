@@ -30,3 +30,13 @@ func (r *UserRepo) FindByEmail(email string) (*models.User, error) {
 func (r *UserRepo) Create(user *models.User) error {
 	return r.db.Create(user).Error
 }
+
+// FindByID retrieves a user by their ID.
+func (r *UserRepo) FindByID(id int) (*models.User, error) {
+	var user models.User
+	err := r.db.First(&user, id).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}

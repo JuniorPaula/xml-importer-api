@@ -32,6 +32,7 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 	invoiceItemHandler := handlers.NewInvoiceItemHandler(db)
 	productHandler := handlers.NewProductHandler(db)
 	authHandler := handlers.NewAuthHandler(db)
+	userHandler := handlers.NewUserHandler(db)
 
 	/* Auth Routes */
 	api.Post("/register", authHandler.RegisterHandler)
@@ -60,4 +61,6 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 	/* Summary Route */
 	api.Get("/summary", invoiceItemHandler.GetInvoiceItemSummaryHandler)
 
+	/* User Routes */
+	api.Get("/user", userHandler.GetProfileHanlder)
 }
