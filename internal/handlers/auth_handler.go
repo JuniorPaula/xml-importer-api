@@ -3,10 +3,12 @@ package handlers
 import (
 	"importerapi/internal/models"
 	"importerapi/internal/repositories"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v5"
 	"gorm.io/gorm"
 )
 
@@ -84,5 +86,68 @@ func (h *AuthHandler) RegisterHandler(c *fiber.Ctx) error {
 			"lastName":  u.LastName,
 			"email":     u.Email,
 		},
+	})
+}
+
+type credentials struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
+// LoginHandler handles user login and returns a JWT token.
+func (h *AuthHandler) LoginHandler(c *fiber.Ctx) error {
+	var body credentials
+
+	if err := c.BodyParser(&body); err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error":   true,
+			"message": "invalid request body",
+		})
+	}
+
+	user, err := h.UserRepo.FindByEmail(body.Email)
+	if err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+				"error":   true,
+				"message": "unauthorized",
+			})
+		}
+
+		return c.Status(fiber.StatusInternalServerError).JSON(
+			fiber.Map{
+				"error":   true,
+				"message": "internal server error",
+			})
+	}
+
+	if !user.CheckPassword(body.Password) {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{
+			"error":   true,
+			"message": "unauthorized",
+		})
+	}
+
+	claims := jwt.MapClaims{
+		"sub":        user.ID,
+		"first_name": user.FirstName,
+		"last_name":  user.LastName,
+		"email":      user.Email,
+		"exp":        time.Now().Add(time.Hour * 24).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	t, err := token.SignedString([]byte(os.Getenv("JWT_SECRET")))
+	if err != nil {
+		return c.Status(fiber.StatusUnprocessableEntity).JSON(fiber.Map{
+			"error":   true,
+			"message": "error signing token",
+		})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"error":   false,
+		"message": "Login successful",
+		"data":    map[string]any{"user": user, "token": t},
 	})
 }

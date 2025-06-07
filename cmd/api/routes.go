@@ -54,4 +54,5 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 
 	/* Auth Routes */
 	api.Post("/register", authHandler.RegisterHandler)
+	api.Post("/login", authHandler.LoginHandler)
 }
