@@ -1,0 +1,338 @@
+type: collection.insomnia.rest/5.0
+name: xmp importer api
+meta:
+  id: wrk_b968135189c24258b7bbff11bb9375ba
+  created: 1749149818580
+  modified: 1749149818580
+  description: ""
+collection:
+  - url: "{{ _.baseUrl }}/api/import/xml"
+    name: /import/xml
+    meta:
+      id: req_f513bf4690b64bb682e79dc1e8958c84
+      created: 1749149850166
+      modified: 1749306652010
+      isPrivate: false
+      description: ""
+      sortKey: -1749149850166
+    method: POST
+    body:
+      mimeType: multipart/form-data
+      params:
+        - id: pair_013f38e1e59c4c14b6d59aed5d5f3ddd
+          name: file
+          value: ""
+          description: ""
+          disabled: false
+          type: file
+          multiline: true
+          fileName: ""
+    headers:
+      - name: Content-Type
+        value: multipart/form-data
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/health"
+    name: /health
+    meta:
+      id: req_a78127554c854484838de37f7417084d
+      created: 1749149882453
+      modified: 1749307670704
+      isPrivate: false
+      description: ""
+      sortKey: -1749149882453
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/customers?pageSize=20"
+    name: /api/customers
+    meta:
+      id: req_58f11967497547e89a02ab1e4ae5a0d7
+      created: 1749234822375
+      modified: 1749306757874
+      isPrivate: false
+      description: ""
+      sortKey: -1749149866309.5
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl
+      }}/api/invoices?month=12&year=00"
+    name: /api/invoices
+    meta:
+      id: req_7fa7e2da10874d6981b3c6b5eb5aa912
+      created: 1749236230509
+      modified: 1749306835948
+      isPrivate: false
+      description: ""
+      sortKey: -1749149858237.75
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/products"
+    name: /api/products
+    meta:
+      id: req_59e7ee02da8b4bfbbadb43ac2f5e4e58
+      created: 1749236955903
+      modified: 1749306776426
+      isPrivate: false
+      description: ""
+      sortKey: -1749149854201.875
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/products/DZH318Z0BP0B"
+    name: /api/products/:id
+    meta:
+      id: req_296eb2381e844ff2ae1daa8e5742a41b
+      created: 1749237345816
+      modified: 1749306640218
+      isPrivate: false
+      description: ""
+      sortKey: -1749149852183.9375
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/invoice-items?orderBy=meter_category&order=asc"
+    name: /api/invoices-items
+    meta:
+      id: req_87c6278bdcd04ab3b0f6860a43bd4b66
+      created: 1749239040451
+      modified: 1749306915492
+      isPrivate: false
+      description: ""
+      sortKey: -1749149856219.8125
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/invoice-items/3"
+    name: /api/invoices-items/:id
+    meta:
+      id: req_41525f2e312a4da99ec1cb5c2b4d3f0f
+      created: 1749239850059
+      modified: 1749306597944
+      isPrivate: false
+      description: ""
+      sortKey: -1749149855210.8438
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/summary"
+    name: /api/summary
+    meta:
+      id: req_b2be4c2374b64b78aefc4cb9c4c0abf4
+      created: 1749240793771
+      modified: 1749306343668
+      isPrivate: false
+      description: ""
+      sortKey: -1749149874381.25
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/register"
+    name: /api/register
+    meta:
+      id: req_b7819c6994a44fa89cbed590d5155419
+      created: 1749296642898
+      modified: 1749306491897
+      isPrivate: false
+      description: ""
+      sortKey: -1749296642899
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"first_name": "user",
+        	"last_name": "example",
+        	"email": "user@example.com",
+        	"password": "123456",
+        	"confirm_password": "123456"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/login"
+    name: /api/login
+    meta:
+      id: req_89c8baec98dd460f936e18b35748eb97
+      created: 1749297939742
+      modified: 1749307205295
+      isPrivate: false
+      description: ""
+      sortKey: -1749223262676
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"email": "user@example.com",
+        	"password": "123456"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/11.2.0
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.baseUrl }}/api/user"
+    name: /api/user
+    meta:
+      id: req_acbf1791f817473291ee16c31da9c5c5
+      created: 1749300421062
+      modified: 1749306523293
+      isPrivate: false
+      description: ""
+      sortKey: -1749149853192.9062
+    method: GET
+    headers:
+      - name: User-Agent
+        value: insomnia/11.1.0
+    authentication:
+      type: bearer
+      token: "{{ _.token }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_3292e19e18f5330f28764c1822da516ea3f39d2e
+    created: 1749149818584
+    modified: 1749149818584
+environments:
+  name: Base Environment
+  meta:
+    id: env_3292e19e18f5330f28764c1822da516ea3f39d2e
+    created: 1749149818582
+    modified: 1749306300325
+    isPrivate: false
+  data:
+    baseUrl: http://localhost:6969
+    token: ""
