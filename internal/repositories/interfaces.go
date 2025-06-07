@@ -6,6 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
+type UserRepository interface {
+	FindByEmail(email string) (*models.User, error)
+	Create(user *models.User) error
+}
+
 type CustomerRepository interface {
 	WithTx(tx *gorm.DB) CustomerRepository
 	FirstOrCreateCustomer(customer *models.Customer) error
