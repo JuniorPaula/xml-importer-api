@@ -4,8 +4,10 @@ import (
 	"importerapi/internal/handlers"
 	"importerapi/internal/middleware"
 	"importerapi/internal/worker"
+	"os"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 	"gorm.io/gorm"
@@ -15,6 +17,12 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 	app.Use(recover.New())
 	app.Use(logger.New(logger.Config{
 		Format: "[${ip}]:${port} ${status} - ${method} ${path}\n",
+	}))
+
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     os.Getenv("FRONTEND_URL"),
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization",
+		AllowCredentials: true,
 	}))
 
 	api := app.Group("/api")
