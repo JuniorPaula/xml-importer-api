@@ -2,6 +2,8 @@
 APP_NAME=bin/app
 MAIN=cmd/api/*.go
 ENV=.env
+API_DIR=cmd/api
+SWAGGER_OUT=docs
 
 # Targets
 run: build
@@ -30,6 +32,10 @@ clean:
 	go clean
 	rm -f $(APP_NAME)
 
+.PHONY: swag
+swag:
+	cd $(API_DIR) && swag init --output ../../$(SWAGGER_OUT)
+
 help:
 	@echo ""
 	@echo "Comandos disponíveis:"
@@ -38,3 +44,4 @@ help:
 	@echo "  make down      → derruba os containers"
 	@echo "  make deps      → organiza módulos"
 	@echo "  make clean     → limpa binários"
+	@echo "  make swag      → gera documentação Swagger"
