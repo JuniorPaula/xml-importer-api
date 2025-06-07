@@ -30,6 +30,7 @@ func ConnectDatabase() (*gorm.DB, error) {
 		&models.InvoiceItem{},
 		&models.Invoice{},
 		&models.Customer{},
+		&models.User{},
 	)
 
 	log.Println("[INFO] Database connected.")
