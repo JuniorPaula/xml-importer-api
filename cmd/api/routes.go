@@ -2,6 +2,7 @@ package main
 
 import (
 	"importerapi/internal/handlers"
+	"importerapi/internal/middleware"
 	"importerapi/internal/worker"
 
 	"github.com/gofiber/fiber/v2"
@@ -32,6 +33,13 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 	productHandler := handlers.NewProductHandler(db)
 	authHandler := handlers.NewAuthHandler(db)
 
+	/* Auth Routes */
+	api.Post("/register", authHandler.RegisterHandler)
+	api.Post("/login", authHandler.LoginHandler)
+
+	/* Middleware for authentication */
+	app.Use(middleware.AuthMiddleware)
+
 	/* Import Routes */
 	api.Post("/import/xml", importHandler.ImportXMLDataHandler)
 
@@ -52,7 +60,4 @@ func bootstrapRoutes(app *fiber.App, db *gorm.DB, jobQueue chan worker.ImportJob
 	/* Summary Route */
 	api.Get("/summary", invoiceItemHandler.GetInvoiceItemSummaryHandler)
 
-	/* Auth Routes */
-	api.Post("/register", authHandler.RegisterHandler)
-	api.Post("/login", authHandler.LoginHandler)
 }
