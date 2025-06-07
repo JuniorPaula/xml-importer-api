@@ -2,8 +2,6 @@
 APP_NAME=bin/app
 MAIN=cmd/api/*.go
 ENV=.env
-API_DIR=cmd/api
-SWAGGER_OUT=docs
 
 # Targets
 run: build
@@ -44,4 +42,3 @@ help:
 	@echo "  make down      → derruba os containers"
 	@echo "  make deps      → organiza módulos"
 	@echo "  make clean     → limpa binários"
-	@echo "  make swag      → gera documentação Swagger"
