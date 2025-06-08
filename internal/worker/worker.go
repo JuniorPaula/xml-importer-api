@@ -10,6 +10,7 @@ import (
 
 type ImportJob struct {
 	FilePath string
+	ImportID string
 }
 
 type Worker struct {
@@ -28,19 +29,21 @@ func (w *Worker) StartImportWorker(jobQueue <-chan ImportJob, workerID int) {
 		}
 		defer f.Close()
 
+		w.Service.ImportStatusRepo.UpdateStatus(job.ImportID, "processing")
 		records, err := util.ReadExcelFromReader(f)
 		if err != nil {
 			fmt.Printf("[Worker %d] Error reading excel file: %s\n", workerID, err.Error())
 			continue
 		}
 
-		err = w.Service.ImportFromXML(records)
-		if err != nil {
-			fmt.Printf("[Worker %d] Failed to import: %s\n", workerID, err)
-			continue
-		}
+		// err = w.Service.ImportFromXML(records)
+		// if err != nil {
+		// 	fmt.Printf("[Worker %d] Failed to import: %s\n", workerID, err)
+		// 	continue
+		// }
 
 		fmt.Printf("[Worker %d] Processed %d records in %s\n", workerID, len(records), time.Since(startTime))
+		w.Service.ImportStatusRepo.UpdateStatus(job.ImportID, "completed")
 
 		if err := os.Remove(job.FilePath); err != nil {
 			fmt.Printf("[Worker %d] Error removing file: %s\n", workerID, err)

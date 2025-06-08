@@ -11,22 +11,24 @@ import (
 )
 
 type ImportService struct {
-	DB              *gorm.DB
-	CustomerRepo    repositories.CustomerRepository
-	PartnerRepo     repositories.PartnerRepository
-	ProductRepo     repositories.ProductRepository
-	InvoiceRepo     repositories.InvoiceRepository
-	InvoiceItemRepo repositories.InvoiceItemRepository
+	DB               *gorm.DB
+	CustomerRepo     repositories.CustomerRepository
+	PartnerRepo      repositories.PartnerRepository
+	ProductRepo      repositories.ProductRepository
+	InvoiceRepo      repositories.InvoiceRepository
+	InvoiceItemRepo  repositories.InvoiceItemRepository
+	ImportStatusRepo repositories.ImportStatusRepository
 }
 
 func NewImportService(db *gorm.DB) *ImportService {
 	return &ImportService{
-		DB:              db,
-		CustomerRepo:    repositories.NewCustomerRepo(db),
-		PartnerRepo:     repositories.NewPartnerRepo(db),
-		ProductRepo:     repositories.NewProductRepo(db),
-		InvoiceRepo:     repositories.NewInvoiceRepo(db),
-		InvoiceItemRepo: repositories.NewInvoiceItemRepo(db),
+		DB:               db,
+		CustomerRepo:     repositories.NewCustomerRepo(db),
+		PartnerRepo:      repositories.NewPartnerRepo(db),
+		ProductRepo:      repositories.NewProductRepo(db),
+		InvoiceRepo:      repositories.NewInvoiceRepo(db),
+		InvoiceItemRepo:  repositories.NewInvoiceItemRepo(db),
+		ImportStatusRepo: repositories.NewImportStatusRepo(db),
 	}
 }
 
@@ -142,4 +144,23 @@ func (s *ImportService) importRecord(tx *gorm.DB, record util.ExcelRecord) error
 func (s *ImportService) parseDate(dataStr string) time.Time {
 	t, _ := time.Parse("2006-01-02", dataStr)
 	return t
+}
+
+func (s *ImportService) GetImportStatus(importID string) (*models.ImportStatus, error) {
+	status, err := s.ImportStatusRepo.FindByImportID(importID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find import status: %w", err)
+	}
+	if status == nil {
+		return nil, fmt.Errorf("import status not found for import ID: %s", importID)
+	}
+	return status, nil
+}
+
+func (s *ImportService) UpdateImportStatus(importID string, status string) error {
+	err := s.ImportStatusRepo.UpdateStatus(importID, status)
+	if err != nil {
+		return fmt.Errorf("failed to update import status: %w", err)
+	}
+	return nil
 }
