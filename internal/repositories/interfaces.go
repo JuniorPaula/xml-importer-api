@@ -43,3 +43,9 @@ type InvoiceItemRepository interface {
 	FindByID(id int) (*models.InvoiceItem, error)
 	GetSummary() (*models.Summary, error)
 }
+
+type ImportStatusRepository interface {
+	Create(data *models.ImportStatus) error
+	FindByImportID(importID string) (*models.ImportStatus, error)
+	UpdateStatus(importID string, status string) error
+}

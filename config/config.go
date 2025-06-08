@@ -31,6 +31,7 @@ func ConnectDatabase() (*gorm.DB, error) {
 		&models.Invoice{},
 		&models.Customer{},
 		&models.User{},
+		&models.ImportStatus{},
 	)
 
 	log.Println("[INFO] Database connected.")
