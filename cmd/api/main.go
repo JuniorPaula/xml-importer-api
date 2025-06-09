@@ -12,6 +12,12 @@ import (
 )
 
 func init() {
+	if os.Getenv("NODE_ENV") != "development" {
+		log.Println("Running in production mode, skipping .env loading")
+		return
+	}
+	// Load environment variables from .env file
+	// This is only for development purposes
 	if err := godotenv.Load(); err != nil {
 		log.Fatal("Error load .env file")
 	}
