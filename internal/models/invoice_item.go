@@ -2,12 +2,12 @@ package models
 
 type InvoiceItem struct {
 	ID                            uint    `gorm:"primaryKey" json:"id"`
-	InvoiceID                     string  `json:"invoice_id"`
-	ProductID                     string  `json:"product_id"`
-	MeterID                       string  `json:"meter_id"`
+	InvoiceID                     string  `gorm:"index" json:"invoice_id"`
+	ProductID                     string  `gorm:"index" json:"product_id"`
+	MeterID                       string  `gorm:"index" json:"meter_id"`
 	MeterName                     string  `json:"meter_name"`
 	MeterType                     string  `json:"meter_type"`
-	MeterCategory                 string  `json:"meter_category"`
+	MeterCategory                 string  `gorm:"index" json:"meter_category"`
 	MeterSubCategory              string  `json:"meter_sub_category"`
 	MeterRegion                   string  `json:"meter_region"`
 	ResourceURI                   string  `json:"resource_uri"`
@@ -28,6 +28,6 @@ type InvoiceItem struct {
 	Tags                          string  `json:"tags"`
 	AdditionalInfo                string  `json:"additional_info"`
 
-	Invoice Invoice `gorm:"foreignKey:InvoiceID" json:"invoice"`
-	Product Product `gorm:"foreignKey:ProductID" json:"product"`
+	Invoice Invoice `gorm:"foreignKey:InvoiceID" json:"invoice,omitempty"`
+	Product Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }

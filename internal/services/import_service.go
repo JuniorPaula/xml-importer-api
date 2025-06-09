@@ -33,7 +33,10 @@ func NewImportService(db *gorm.DB) *ImportService {
 }
 
 func (s *ImportService) ImportFromXML(records []util.ExcelRecord) error {
-	tx := s.DB.Begin()
+	tx := s.DB.Session(&gorm.Session{
+		SkipHooks:            true,
+		FullSaveAssociations: false,
+	}).Begin()
 	if tx.Error != nil {
 		return tx.Error
 	}
@@ -43,26 +46,32 @@ func (s *ImportService) ImportFromXML(records []util.ExcelRecord) error {
 			tx.Rollback()
 		}
 	}()
+	defer tx.Rollback()
 
 	for _, record := range records {
-		if err := s.importRecord(tx, record); err != nil {
+		if err := s.importDependencies(tx, record); err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
+	invoiceItems := s.BuildInvoiceItems(records)
+	if err := tx.CreateInBatches(invoiceItems, 1000).Error; err != nil {
+		tx.Rollback()
+		return fmt.Errorf("failed to batch insert invoice items: %w", err)
+	}
+
 	return tx.Commit().Error
 }
 
-func (s *ImportService) importRecord(tx *gorm.DB, record util.ExcelRecord) error {
+func (s *ImportService) importDependencies(tx *gorm.DB, record util.ExcelRecord) error {
 	partner := models.Partner{
 		ID:         record.ParterID,
 		Name:       record.PartnerName,
 		MpnID:      record.MpnID,
 		Tier2MpnID: record.Tier2MpnID,
 	}
-	err := s.PartnerRepo.WithTx(tx).FirstOrCreatePartner(&partner)
-	if err != nil {
+	if err := s.PartnerRepo.WithTx(tx).FirstOrCreatePartner(&partner); err != nil {
 		return fmt.Errorf("failed to create or find partner: %w", err)
 	}
 
@@ -72,8 +81,7 @@ func (s *ImportService) importRecord(tx *gorm.DB, record util.ExcelRecord) error
 		Domain:  record.CustomerDomainName,
 		Country: record.CustomerCountry,
 	}
-	err = s.CustomerRepo.WithTx(tx).FirstOrCreateCustomer(&customer)
-	if err != nil {
+	if err := s.CustomerRepo.WithTx(tx).FirstOrCreateCustomer(&customer); err != nil {
 		return fmt.Errorf("failed to create or find customer: %w", err)
 	}
 
@@ -88,8 +96,7 @@ func (s *ImportService) importRecord(tx *gorm.DB, record util.ExcelRecord) error
 		EntitlementID:   record.EntitlementId,
 		EntitlementDesc: record.EntitlementDescription,
 	}
-	err = s.ProductRepo.WithTx(tx).FirstOrCreateProduct(&product)
-	if err != nil {
+	if err := s.ProductRepo.WithTx(tx).FirstOrCreateProduct(&product); err != nil {
 		return fmt.Errorf("failed to create or find product: %w", err)
 	}
 
@@ -102,43 +109,49 @@ func (s *ImportService) importRecord(tx *gorm.DB, record util.ExcelRecord) error
 		ExchangeRateDate: s.parseDate(record.PCToBCExchangeRateDate),
 		ExchangeRate:     float64(record.PCToBCExchangeRate),
 	}
-	err = s.InvoiceRepo.WithTx(tx).FirstOrCreateInvoice(&invoice)
-	if err != nil {
+	if err := s.InvoiceRepo.WithTx(tx).FirstOrCreateInvoice(&invoice); err != nil {
 		return fmt.Errorf("failed to create or find invoice: %w", err)
 	}
 
-	item := models.InvoiceItem{
-		InvoiceID:                     record.InvoiceNumber,
-		ProductID:                     record.ProductID,
-		MeterID:                       record.MeterID,
-		MeterName:                     record.MeterName,
-		MeterType:                     record.MeterType,
-		MeterCategory:                 record.MeterCategory,
-		MeterSubCategory:              record.MeterSubCategory,
-		MeterRegion:                   record.MeterRegion,
-		ResourceURI:                   record.ResourceURI,
-		Quantity:                      record.Quantity,
-		UnitPrice:                     record.UnitPrice,
-		TotalPrice:                    record.BillingPreTaxTotal,
-		EffectiveUnitPrice:            record.EffectiveUnitPrice,
-		Unit:                          record.Unit,
-		UnitType:                      record.UnitType,
-		ChargeType:                    record.ChargeType,
-		BillingCurrency:               record.BillingCurrency,
-		PricingCurrency:               record.PricingCurrency,
-		ServiceInfo1:                  record.ServiceInfo1,
-		ServiceInfo2:                  record.ServiceInfo2,
-		CreditType:                    record.CreditType,
-		CreditPercentage:              record.CreditPercentage,
-		PartnerEarnedCreditPercentage: record.PartnerEarnedCreditPercentage,
-		Tags:                          record.Tags,
-		AdditionalInfo:                record.AdditionalInfo,
-	}
-	err = s.InvoiceItemRepo.WithTx(tx).FirstOrCreateInvoiceItem(&item)
-	if err != nil {
-		return fmt.Errorf("failed to create or find invoice item: %w", err)
-	}
 	return nil
+}
+
+func (s *ImportService) BuildInvoiceItems(records []util.ExcelRecord) []models.InvoiceItem {
+	items := make([]models.InvoiceItem, 0, len(records))
+	for i, r := range records {
+		if i%10000 == 0 && i != 0 {
+			fmt.Printf("Progressing: %d records processed\n", i)
+		}
+
+		items = append(items, models.InvoiceItem{
+			InvoiceID:                     r.InvoiceNumber,
+			ProductID:                     r.ProductID,
+			MeterID:                       r.MeterID,
+			MeterName:                     r.MeterName,
+			MeterType:                     r.MeterType,
+			MeterCategory:                 r.MeterCategory,
+			MeterSubCategory:              r.MeterSubCategory,
+			MeterRegion:                   r.MeterRegion,
+			ResourceURI:                   r.ResourceURI,
+			Quantity:                      r.Quantity,
+			UnitPrice:                     r.UnitPrice,
+			TotalPrice:                    r.BillingPreTaxTotal,
+			EffectiveUnitPrice:            r.EffectiveUnitPrice,
+			Unit:                          r.Unit,
+			UnitType:                      r.UnitType,
+			ChargeType:                    r.ChargeType,
+			BillingCurrency:               r.BillingCurrency,
+			PricingCurrency:               r.PricingCurrency,
+			ServiceInfo1:                  r.ServiceInfo1,
+			ServiceInfo2:                  r.ServiceInfo2,
+			CreditType:                    r.CreditType,
+			CreditPercentage:              r.CreditPercentage,
+			PartnerEarnedCreditPercentage: r.PartnerEarnedCreditPercentage,
+			Tags:                          r.Tags,
+			AdditionalInfo:                r.AdditionalInfo,
+		})
+	}
+	return items
 }
 
 func (s *ImportService) parseDate(dataStr string) time.Time {
@@ -158,8 +171,7 @@ func (s *ImportService) GetImportStatus(importID string) (*models.ImportStatus, 
 }
 
 func (s *ImportService) UpdateImportStatus(importID string, status string) error {
-	err := s.ImportStatusRepo.UpdateStatus(importID, status)
-	if err != nil {
+	if err := s.ImportStatusRepo.UpdateStatus(importID, status); err != nil {
 		return fmt.Errorf("failed to update import status: %w", err)
 	}
 	return nil
