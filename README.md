@@ -340,7 +340,7 @@ Importe o arquivo `docs/insomnia-export.yaml` no Insomnia ou Postman para testar
 
 -  **Rotas RESTful** com paginação e filtros
 
-  
+#### Link do repositório: [xml-importer-web](https://github.com/JuniorPaula/xml-importer-web.git) 
 
 ##  Para rodar o projeto localmente:
 
@@ -354,12 +354,18 @@ cd  xml-importer-api
 
 cp  .env.example  .env
 
-make  run
+make up && make  run
 
   
 
 ```
 
+#### Helper
+```bash
+
+make help
+
+```
   
 
 ----------

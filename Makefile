@@ -30,10 +30,6 @@ clean:
 	go clean
 	rm -f $(APP_NAME)
 
-.PHONY: swag
-swag:
-	cd $(API_DIR) && swag init --output ../../$(SWAGGER_OUT)
-
 help:
 	@echo ""
 	@echo "Comandos disponíveis:"
