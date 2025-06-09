@@ -2,11 +2,12 @@
 APP_NAME=bin/app
 MAIN=cmd/api/*.go
 ENV=.env
+NODE_ENV=development
 
 # Targets
 run: build
 	@echo "Starting the Go server..."
-	$(APP_NAME) -config $(ENV)
+	NODE_ENV=$(NODE_ENV) $(APP_NAME) -config $(ENV)
 
 build:
 	@mkdir -p bin

@@ -107,7 +107,7 @@ func (r *InvoiceItemRepo) GetSummary() (*models.Summary, error) {
 		return nil, err
 	}
 
-	if err := r.db.Model(&models.InvoiceItem{}).Select("SUM(total_price)").Scan(&totalBilling).Error; err != nil {
+	if err := r.db.Model(&models.InvoiceItem{}).Select("COALESCE(SUM(total_price), 0)").Scan(&totalBilling).Error; err != nil {
 		return nil, err
 	}
 
