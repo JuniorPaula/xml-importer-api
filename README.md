@@ -16,6 +16,15 @@ API para importar arquivos XML (via `.xlsx`), processar dados com workers e pers
 
   
 
+## Eficiência
+
+⚡ Importação de 76.920 registros concluída em apenas 37 segundos.
+Desempenho de produção com arquitetura assíncrona, batch otimizado e persistência eficiente.
+
+![Print upload](./assets/img1.png)
+
+  
+
 ##  Autenticação
 
   
