@@ -26,19 +26,6 @@ type InvoiceItemFilter struct {
 	PageSize   int
 }
 
-// WithTx returns a new InvoiceItemRepository that uses the provided transaction.
-func (r *InvoiceItemRepo) WithTx(tx *gorm.DB) InvoiceItemRepository {
-	return &InvoiceItemRepo{
-		db: tx,
-	}
-}
-
-// FirstOrCreateInvoiceItem attempts to find an invoice item by ID, and if not found,
-// creates a new invoice item with the provided details.
-func (r *InvoiceItemRepo) FirstOrCreateInvoiceItem(invoiceItem *models.InvoiceItem) error {
-	return r.db.Where("id = ?", invoiceItem.ID).FirstOrCreate(invoiceItem).Error
-}
-
 // FindAll retrieves invoice items based on the provided filter criteria.
 func (r *InvoiceItemRepo) FindAll(filter InvoiceItemFilter) ([]models.InvoiceItem, int64, error) {
 	var items []models.InvoiceItem

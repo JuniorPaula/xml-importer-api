@@ -23,19 +23,6 @@ type CustomerFilter struct {
 	PageSize int
 }
 
-// WithTx returns a new CustomerRepository that uses the provided transaction.
-func (r *CustomerRepo) WithTx(tx *gorm.DB) CustomerRepository {
-	return &CustomerRepo{
-		db: tx,
-	}
-}
-
-// FirstOrCreateCustomer attempts to find a customer by ID, and if not found,
-// creates a new customer with the provided details.
-func (r *CustomerRepo) FirstOrCreateCustomer(customer *models.Customer) error {
-	return r.db.Where("id = ?", customer.ID).FirstOrCreate(customer).Error
-}
-
 // FindAll retrieves customers based on the provided filter criteria.
 func (r *CustomerRepo) FindAll(filter CustomerFilter) ([]models.Customer, int64, error) {
 	var customers []models.Customer

@@ -8,26 +8,17 @@ import (
 	"time"
 
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type ImportService struct {
 	DB               *gorm.DB
-	CustomerRepo     repositories.CustomerRepository
-	PartnerRepo      repositories.PartnerRepository
-	ProductRepo      repositories.ProductRepository
-	InvoiceRepo      repositories.InvoiceRepository
-	InvoiceItemRepo  repositories.InvoiceItemRepository
 	ImportStatusRepo repositories.ImportStatusRepository
 }
 
 func NewImportService(db *gorm.DB) *ImportService {
 	return &ImportService{
 		DB:               db,
-		CustomerRepo:     repositories.NewCustomerRepo(db),
-		PartnerRepo:      repositories.NewPartnerRepo(db),
-		ProductRepo:      repositories.NewProductRepo(db),
-		InvoiceRepo:      repositories.NewInvoiceRepo(db),
-		InvoiceItemRepo:  repositories.NewInvoiceItemRepo(db),
 		ImportStatusRepo: repositories.NewImportStatusRepo(db),
 	}
 }
@@ -48,8 +39,14 @@ func (s *ImportService) ImportFromXML(records []util.ExcelRecord) error {
 	}()
 	defer tx.Rollback()
 
+	// cache to control the number of calls to the database
+	partnerCache := map[string]bool{}
+	customerCache := map[string]bool{}
+	productCache := map[string]bool{}
+	invoiceCache := map[string]bool{}
+
 	for _, record := range records {
-		if err := s.importDependencies(tx, record); err != nil {
+		if err := s.importDependencies(tx, record, partnerCache, customerCache, productCache, invoiceCache); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -64,53 +61,69 @@ func (s *ImportService) ImportFromXML(records []util.ExcelRecord) error {
 	return tx.Commit().Error
 }
 
-func (s *ImportService) importDependencies(tx *gorm.DB, record util.ExcelRecord) error {
-	partner := models.Partner{
-		ID:         record.ParterID,
-		Name:       record.PartnerName,
-		MpnID:      record.MpnID,
-		Tier2MpnID: record.Tier2MpnID,
-	}
-	if err := s.PartnerRepo.WithTx(tx).FirstOrCreatePartner(&partner); err != nil {
-		return fmt.Errorf("failed to create or find partner: %w", err)
+func (s *ImportService) importDependencies(
+	tx *gorm.DB, record util.ExcelRecord,
+	partnerCache, customerCache, productCache, invoiceCache map[string]bool,
+) error {
+	if !partnerCache[record.ParterID] {
+		partner := models.Partner{
+			ID:         record.ParterID,
+			Name:       record.PartnerName,
+			MpnID:      record.MpnID,
+			Tier2MpnID: record.Tier2MpnID,
+		}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&partner).Error; err != nil {
+			return fmt.Errorf("failed to create partner: %w", err)
+		}
+		partnerCache[record.ParterID] = true
+
 	}
 
-	customer := models.Customer{
-		ID:      record.CustomerID,
-		Name:    record.CustomerName,
-		Domain:  record.CustomerDomainName,
-		Country: record.CustomerCountry,
-	}
-	if err := s.CustomerRepo.WithTx(tx).FirstOrCreateCustomer(&customer); err != nil {
-		return fmt.Errorf("failed to create or find customer: %w", err)
-	}
-
-	product := models.Product{
-		ID:              record.ProductID,
-		Name:            record.ProductName,
-		SkuID:           record.SKUID,
-		SkuName:         record.SKUName,
-		AvailabilityID:  record.AvailabilityID,
-		PublisherName:   record.PublisherName,
-		PublisherID:     record.PublisherID,
-		EntitlementID:   record.EntitlementId,
-		EntitlementDesc: record.EntitlementDescription,
-	}
-	if err := s.ProductRepo.WithTx(tx).FirstOrCreateProduct(&product); err != nil {
-		return fmt.Errorf("failed to create or find product: %w", err)
+	if !customerCache[record.CustomerID] {
+		customer := models.Customer{
+			ID:      record.CustomerID,
+			Name:    record.CustomerName,
+			Domain:  record.CustomerDomainName,
+			Country: record.CustomerCountry,
+		}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&customer).Error; err != nil {
+			return fmt.Errorf("failed to create customer: %w", err)
+		}
+		customerCache[record.CustomerID] = true
 	}
 
-	invoice := models.Invoice{
-		ID:               record.InvoiceNumber,
-		PartnerID:        record.ParterID,
-		CustomerID:       record.CustomerID,
-		ChargeStartDate:  s.parseDate(record.ChargeStartDate),
-		ChargeEndDate:    s.parseDate(record.ChargeEndDate),
-		ExchangeRateDate: s.parseDate(record.PCToBCExchangeRateDate),
-		ExchangeRate:     float64(record.PCToBCExchangeRate),
+	if !productCache[record.ProductID] {
+		product := models.Product{
+			ID:              record.ProductID,
+			Name:            record.ProductName,
+			SkuID:           record.SKUID,
+			SkuName:         record.SKUName,
+			AvailabilityID:  record.AvailabilityID,
+			PublisherName:   record.PublisherName,
+			PublisherID:     record.PublisherID,
+			EntitlementID:   record.EntitlementId,
+			EntitlementDesc: record.EntitlementDescription,
+		}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&product).Error; err != nil {
+			return fmt.Errorf("failed to create product: %w", err)
+		}
+		productCache[record.ProductID] = true
 	}
-	if err := s.InvoiceRepo.WithTx(tx).FirstOrCreateInvoice(&invoice); err != nil {
-		return fmt.Errorf("failed to create or find invoice: %w", err)
+
+	if !invoiceCache[record.InvoiceNumber] {
+		invoice := models.Invoice{
+			ID:               record.InvoiceNumber,
+			PartnerID:        record.ParterID,
+			CustomerID:       record.CustomerID,
+			ChargeStartDate:  s.parseDate(record.ChargeStartDate),
+			ChargeEndDate:    s.parseDate(record.ChargeEndDate),
+			ExchangeRateDate: s.parseDate(record.PCToBCExchangeRateDate),
+			ExchangeRate:     float64(record.PCToBCExchangeRate),
+		}
+		if err := tx.Clauses(clause.OnConflict{DoNothing: true}).Create(&invoice).Error; err != nil {
+			return fmt.Errorf("failed to create invoice: %w", err)
+		}
+		invoiceCache[record.InvoiceNumber] = true
 	}
 
 	return nil
