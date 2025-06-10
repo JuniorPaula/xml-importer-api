@@ -343,7 +343,7 @@ Importe o arquivo `docs/insomnia-export.yaml` no Insomnia ou Postman para testar
 
 - Importação massiva de arquivos `.xlsx` com **leitura por stream**
 
-- Sistema de **persistência inteligente com FirstOrCreate**
+- Sistema de **persistência eficiente com batchs otimizado.**
 
 -  **Autenticação JWT** protegendo as rotas privadas
 
